@@ -40,11 +40,20 @@
 				color: white;
 				padding: 5px;
 				vertical-align: top;
+				font-size: 1vw;
+			}
+
+			th {
+				border: 1px solid black;
+				color: white;
+				padding: 5px;
+				vertical-align: top;
+				font-size: 1.5vw;
 			}
 			
 			table {
 				background: rgba(0, 0, 0, 0.9);
-				font-size: 1vw;
+				width: 100%;
 			}
 			
 			passive, unique {
@@ -72,7 +81,7 @@
 	<body>
 		<div id="loadingOverlay">
 			<div id="loadingBar"></div>
-			<p style="z-index: 2;">
+			<p style="z-index: 2; text-align: center;">
 				Loading data...<br/>
 				<span id="loadingStep"></span>
 			</p>
@@ -86,6 +95,17 @@
 			
 			function create() {
 				let table = document.createElement('table'), row, cell;
+
+				row = document.createElement('tr');
+
+				let items = ['Image', 'Name', 'Costs', 'Tooltip', 'Description', 'Builds from:', 'Build into:', 'Available on:'];
+				for(let i = 0; i < items.length; i++) {
+					cell = document.createElement('th');
+					cell.innerText = items[i];
+					row.appendChild(cell);
+				}
+				
+				table.appendChild(row);
 				
 				for(let item of Object.values(itemList)) {
 					if(!item.name) continue;
@@ -117,7 +137,7 @@
 					cell.style.width = '10%';
 					
 					cell = row.insertCell();
-					cell.innerHTML = '<span style="text-decoration: underline;">Builds from:</span><br/>';
+					cell.innerHTML = '';
 					if(typeof item.from == 'object') 
 						for(let i = 0; i < item.from.length; i++) {
 							if(i != 0) cell.innerHTML += ', ';
@@ -127,7 +147,7 @@
 					cell.style.width = '12%';
 					
 					cell = row.insertCell();
-					cell.innerHTML = '<span style="text-decoration: underline;">Builds into:</span><br/>';
+					cell.innerHTML = '';
 					if(typeof item.into == 'object')
 						for(let i = 0; i < item.into.length; i++) {
 							if(i != 0) cell.innerHTML += ', ';
@@ -137,7 +157,7 @@
 					cell.style.width = '12%';
 					
 					cell = row.insertCell();
-					cell.innerHTML = '<span style="text-decoration: underline;">Available on:</span><br/>';
+					cell.innerHTML = '';
 					if(typeof item.maps == 'object') {
 						let i = 0;
 						for(let id of Object.keys(item.maps)) {
@@ -184,22 +204,26 @@
 					}
 				});
 				
-				requestJSON('https://euw1.api.riotgames.com/lol/static-data/v3/items?itemListData=all', json => {
-					itemList = JSON.parse(json).data;
+				requestJSON('https://euw1.api.riotgames.com/lol/static-data/v3/items?itemListData=all', data => {
+					itemList = data.data;
 					
 					updateBar(5, 'Loaded item list.');
 				});
 				
-				requestJSON('https://euw1.api.riotgames.com/lol/static-data/v3/maps', json => {
-					mapList = JSON.parse(json).data;
+				requestJSON('https://euw1.api.riotgames.com/lol/static-data/v3/maps', data => {
+					mapList = data.data;
 					
 					updateBar(2, 'Loaded map list.');
 				});
 			}
 			
 			function requestJSON(url, callback) {
-				fetch(url.includes('?') ? (url + '&api_key=' + apiKey) : (url + '?api_key=' + apiKey))
-					.then(response => response.text()).then(callback);
+				let showError = e => {
+					document.querySelector('#loadingStep').innerHTML = 'An error has occured:<br/>' + e;
+				};
+
+				fetch(url.includes('?') ? (url + '&api_key=' + apiKey) : (url + '?api_key=' + apiKey)).catch(e => showError)
+					.then(response => response.json()).catch(e => showError).then(callback).catch(e => showError);
 			}
 			
 			document.body.onload = load;
