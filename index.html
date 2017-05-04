@@ -1,0 +1,208 @@
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>
+			League Item List
+		</title>
+		
+		<style>
+			body {
+				font-family: Tahoma, Geneva, sans-serif;
+				margin: 0px;
+			}
+			
+			#loadingOverlay {
+				padding: 0;
+				width: 100%;
+				height: 100%;
+				position: absolute;
+				top: 0;
+				left: 0;
+				z-index: 1;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				background: white;
+			}
+			
+			#loadingBar {
+				position: absolute;
+				top: 0;
+				left: 0;
+				height: 100%;
+				width: 0;
+				background: #3264c8;
+				transition: width 1s;
+			}
+			
+			td {
+				border: 1px solid black;
+				color: white;
+				padding: 5px;
+				vertical-align: top;
+			}
+			
+			table {
+				background: rgba(0, 0, 0, 0.9);
+				font-size: 1vw;
+			}
+			
+			passive, unique {
+				color: rgb(255, 220, 0);
+			}
+			
+			groupLimit {
+				color: rgb(220, 0, 0);
+			}
+			
+			active, consumable {
+				color: rgb(255, 127, 0);
+			}
+			
+			stats {
+				color: rgb(200, 255, 200);
+			}
+
+			a {
+				color: white;
+				text-decoration: none;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="loadingOverlay">
+			<div id="loadingBar"></div>
+			<p style="z-index: 2;">
+				Loading data...<br/>
+				<span id="loadingStep"></span>
+			</p>
+		</div>
+		
+		<script>
+			'use strict';
+			
+			let apiKey = 'RGAPI-544758ae-a8ab-4456-ba5e-0396b2be8c5e';
+			let itemList, mapList;
+			
+			function create() {
+				let table = document.createElement('table'), row, cell;
+				
+				for(let item of Object.values(itemList)) {
+					if(!item.name) continue;
+					if(!item.description) item.description = '';
+					
+					row = table.insertRow();
+					
+					cell = row.insertCell();
+					cell.innerHTML = 
+					`<img src="http://ddragon.leagueoflegends.com/cdn/6.24.1/img/item/${item.image.full}"/>`;
+					cell.style.width = '5%';
+					
+					cell = row.insertCell();
+					cell.innerHTML = `<a name="${item.id}">${item.name}</a>`;
+					cell.style.width = '4%';
+					
+					cell = row.insertCell();
+					cell.innerHTML = `Total cost: ${item.gold.total}<br/>
+					Combine cost: ${item.gold.base}<br/>
+					Sell price: ${item.gold.sell}`;
+					cell.style.width = '11%';
+					
+					cell = row.insertCell();
+					cell.innerHTML = ((item.description == undefined) ? 'No description' : item.description);
+					cell.style.width = '30%';
+					
+					cell = row.insertCell();
+					cell.innerHTML = item.plaintext;
+					cell.style.width = '10%';
+					
+					cell = row.insertCell();
+					cell.innerHTML = '<span style="text-decoration: underline;">Builds from:</span><br/>';
+					if(typeof item.from == 'object') 
+						for(let i = 0; i < item.from.length; i++) {
+							if(i != 0) cell.innerHTML += ', ';
+							cell.innerHTML += `<a href="#${itemList[item.from[i]].id}">${itemList[item.from[i]].name}</a>`;
+						}
+					else cell.innerHTML += 'Nothing';
+					cell.style.width = '12%';
+					
+					cell = row.insertCell();
+					cell.innerHTML = '<span style="text-decoration: underline;">Builds into:</span><br/>';
+					if(typeof item.into == 'object')
+						for(let i = 0; i < item.into.length; i++) {
+							if(i != 0) cell.innerHTML += ', ';
+							cell.innerHTML += `<a href="#${itemList[item.into[i]].id}">${itemList[item.into[i]].name}</a>`;
+						}
+					else cell.innerHTML += 'Nothing';
+					cell.style.width = '12%';
+					
+					cell = row.insertCell();
+					cell.innerHTML = '<span style="text-decoration: underline;">Available on:</span><br/>';
+					if(typeof item.maps == 'object') {
+						let i = 0;
+						for(let id of Object.keys(item.maps)) {
+							if(item.maps[id]) {
+								if(i != 0) cell.innerHTML += ', ';
+								cell.innerHTML += mapList[id].mapName;
+								i++
+							}
+						}
+					}
+					else cell.innerHTML += 'Nothing';
+					cell.style.width = '16%';
+				}
+				
+				document.body.appendChild(table);
+						
+				setTimeout(function() {
+					document.querySelector('#loadingOverlay').animate(
+						{opacity: [1, 0]}, 
+						{
+							duration: 500,
+							easing: 'ease-in-out',
+							fill: 'forwards'
+						}
+					);
+				}, 1000);
+				
+				setTimeout(function() {
+					document.body.removeChild(document.querySelector('#loadingOverlay'));
+				}, 1500);
+			}
+			
+			function load() {
+				let maxWeight = 7, currentWeight = 0;
+				let updateBar = ((inc, text) => {
+					currentWeight += inc;
+					document.querySelector('#loadingStep').innerText = text;
+					document.querySelector('#loadingBar').style.width = (100 * (currentWeight / maxWeight)) + '%';
+					
+					if(currentWeight == maxWeight) {
+						document.querySelector('#loadingStep').innerText = 'Done loading data, creating table...';
+						
+						create();
+					}
+				});
+				
+				requestJSON('https://euw1.api.riotgames.com/lol/static-data/v3/items?itemListData=all', json => {
+					itemList = JSON.parse(json).data;
+					
+					updateBar(5, 'Loaded item list.');
+				});
+				
+				requestJSON('https://euw1.api.riotgames.com/lol/static-data/v3/maps', json => {
+					mapList = JSON.parse(json).data;
+					
+					updateBar(2, 'Loaded map list.');
+				});
+			}
+			
+			function requestJSON(url, callback) {
+				fetch(url.includes('?') ? (url + '&api_key=' + apiKey) : (url + '?api_key=' + apiKey))
+					.then(response => response.text()).then(callback);
+			}
+			
+			document.body.onload = load;
+		</script>
+	</body>
+</html>
