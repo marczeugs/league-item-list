@@ -129,11 +129,11 @@
 					cell.style.width = '11%';
 					
 					cell = row.insertCell();
-					cell.innerHTML = ((item.description == undefined) ? 'No description' : item.description);
+					cell.innerHTML = ((item.description === undefined) ? 'No tooltip' : item.description);
 					cell.style.width = '30%';
 					
 					cell = row.insertCell();
-					cell.innerHTML = item.plaintext;
+					cell.innerHTML = ((item.plaintext === undefined) ? 'No description' : item.plaintext);
 					cell.style.width = '10%';
 					
 					cell = row.insertCell();
@@ -229,11 +229,12 @@
 			
 			function requestJSON(url, callback) {
 				try {
-					fetch(url.includes('?') ? (url + '&api_key=' + apiKey) : (url + '?api_key=' + apiKey),
+					fetch('https://cors-anywhere.herokuapp.com/' + (url.includes('?') ? (url + '&api_key=' + apiKey) : (url + '?api_key=' + apiKey)),
 							{
 								headers: new Headers(
 									{
-										'Access-Control-Allow-Origin': '*'
+										'Access-Control-Allow-Origin': '*',
+										'mode': 'no-cors'
 									}
 								)
 							}
