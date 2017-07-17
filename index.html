@@ -90,7 +90,7 @@
 		<script>
 			'use strict';
 			
-			let apiKey = 'RGAPI-544758ae-a8ab-4456-ba5e-0396b2be8c5e';
+			let apiKey;
 			let itemList, mapList;
 			
 			function create() {
@@ -173,6 +173,8 @@
 				}
 				
 				document.body.appendChild(table);
+				
+				Array.from(document.getElementsByTagName('font')).forEach(tag => tag.removeAttribute('size'));
 						
 				setTimeout(function() {
 					document.querySelector('#loadingOverlay').animate(
@@ -204,26 +206,50 @@
 					}
 				});
 				
-				requestJSON('https://euw1.api.riotgames.com/lol/static-data/v3/items?itemListData=all', data => {
-					itemList = data.data;
-					
-					updateBar(5, 'Loaded item list.');
-				});
-				
-				requestJSON('https://euw1.api.riotgames.com/lol/static-data/v3/maps', data => {
-					mapList = data.data;
-					
-					updateBar(2, 'Loaded map list.');
+				fetch('https://raw.githubusercontent.com/marczeugs/league-item-list/master/api.key')
+					.catch(e => showError(e))
+					.then(r => r.text())
+					.catch(e => showError(e))
+					.then(r => {
+						apiKey = r;
+						
+						requestJSON('https://euw1.api.riotgames.com/lol/static-data/v3/items?itemListData=all&locale=en_GB', data => {
+							itemList = data.data;
+							
+							updateBar(5, 'Loaded item list.');
+						});
+						
+						requestJSON('https://euw1.api.riotgames.com/lol/static-data/v3/maps?locale=en_GB', data => {
+							mapList = data.data;
+							
+							updateBar(2, 'Loaded map list.');
+						});
 				});
 			}
 			
 			function requestJSON(url, callback) {
-				let showError = e => {
-					document.querySelector('#loadingStep').innerHTML = 'An error has occured:<br/>' + e;
-				};
-
-				fetch(url.includes('?') ? (url + '&api_key=' + apiKey) : (url + '?api_key=' + apiKey)).catch(e => showError)
-					.then(response => response.json()).catch(e => showError).then(callback).catch(e => showError);
+				try {
+					fetch(url.includes('?') ? (url + '&api_key=' + apiKey) : (url + '?api_key=' + apiKey),
+							{
+								headers: new Headers(
+									{
+										'Access-Control-Allow-Origin': '*'
+									}
+								)
+							}
+						)
+						.catch(e => showError(e))
+						.then(response => response.json())
+						.catch(e => showError(e))
+						.then(callback)
+						.catch(e => showError(e));
+				} catch(e) {
+					showError(e);
+				}
+			}
+			
+			function showError(e) {
+				document.querySelector('#loadingStep').innerHTML = 'An error has occured:<br/>' + e;
 			}
 			
 			document.body.onload = load;
