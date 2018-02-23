@@ -91,7 +91,7 @@
 			'use strict';
 			
 			let apiKey = prompt('Riot API key:');
-			let itemList, mapList;
+			let itemList, mapList, latestPatch;
 			
 			function create() {
 				let table = document.createElement('table'), row, cell;
@@ -115,7 +115,7 @@
 					
 					cell = row.insertCell();
 					cell.innerHTML = 
-					`<img src="http://ddragon.leagueoflegends.com/cdn/6.24.1/img/item/${item.image.full}"/>`;
+					`<img src="http://ddragon.leagueoflegends.com/cdn/${latestPatch}/img/item/${item.image.full}"/>`;
 					cell.style.width = '5%';
 					
 					cell = row.insertCell();
@@ -138,7 +138,7 @@
 					
 					cell = row.insertCell();
 					cell.innerHTML = '';
-					if(typeof item.from == 'object') 
+					if(typeof item.from === 'object') 
 						for(let i = 0; i < item.from.length; i++) {
 							if(i != 0) cell.innerHTML += ', ';
 							cell.innerHTML += `<a href="#${itemList[item.from[i]].id}">${itemList[item.from[i]].name}</a>`;
@@ -148,7 +148,7 @@
 					
 					cell = row.insertCell();
 					cell.innerHTML = '';
-					if(typeof item.into == 'object')
+					if(typeof item.into === 'object')
 						for(let i = 0; i < item.into.length; i++) {
 							if(i != 0) cell.innerHTML += ', ';
 							cell.innerHTML += `<a href="#${itemList[item.into[i]].id}">${itemList[item.into[i]].name}</a>`;
@@ -158,7 +158,7 @@
 					
 					cell = row.insertCell();
 					cell.innerHTML = '';
-					if(typeof item.maps == 'object') {
+					if(typeof item.maps === 'object') {
 						let i = 0;
 						for(let id of Object.keys(item.maps)) {
 							if(item.maps[id]) {
@@ -193,17 +193,23 @@
 			}
 			
 			function load() {
-				let maxWeight = 7, currentWeight = 0;
+				let maxWeight = 8, currentWeight = 0;
 				let updateBar = ((inc, text) => {
 					currentWeight += inc;
 					document.querySelector('#loadingStep').innerText = text;
 					document.querySelector('#loadingBar').style.width = (100 * (currentWeight / maxWeight)) + '%';
 					
-					if(currentWeight == maxWeight) {
+					if(currentWeight === maxWeight) {
 						document.querySelector('#loadingStep').innerText = 'Done loading data, creating table...';
 						
 						create();
 					}
+				});
+				
+				requestJSON('https://ddragon.leagueoflegends.com/api/versions.json', data => {
+					lastestPatch = data[0];
+
+					updateBar(1, 'Fetched latest patch version.');
 				});
 				
 				requestJSON('https://euw1.api.riotgames.com/lol/static-data/v3/items?itemListData=all&locale=en_GB', data => {
