@@ -172,8 +172,6 @@
 					cell.style.width = '16%';
 				}
 				
-				document.body.appendChild(table);
-				
 				Array.from(document.getElementsByTagName('font')).forEach(tag => tag.removeAttribute('size'));
 						
 				setTimeout(function() {
@@ -189,6 +187,8 @@
 				
 				setTimeout(function() {
 					document.body.removeChild(document.querySelector('#loadingOverlay'));
+				
+					document.body.appendChild(table);
 				}, 1500);
 			}
 			
