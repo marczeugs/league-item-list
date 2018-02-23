@@ -207,7 +207,7 @@
 				});
 				
 				requestJSON('https://ddragon.leagueoflegends.com/api/versions.json', data => {
-					lastestPatch = data[0];
+					latestPatch = data[0];
 
 					updateBar(1, 'Fetched latest patch version.');
 				});
