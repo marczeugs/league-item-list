@@ -90,7 +90,7 @@
 		<script>
 			'use strict';
 			
-			let apiKey;
+			let apiKey = prompt('Riot API key:');
 			let itemList, mapList;
 			
 			function create() {
@@ -206,24 +206,16 @@
 					}
 				});
 				
-				fetch('https://raw.githubusercontent.com/marczeugs/league-item-list/master/api.key')
-					.catch(e => showError(e))
-					.then(r => r.text())
-					.catch(e => showError(e))
-					.then(r => {
-						apiKey = r;
-						
-						requestJSON('https://euw1.api.riotgames.com/lol/static-data/v3/items?itemListData=all&locale=en_GB', data => {
-							itemList = data.data;
-							
-							updateBar(5, 'Loaded item list.');
-						});
-						
-						requestJSON('https://euw1.api.riotgames.com/lol/static-data/v3/maps?locale=en_GB', data => {
-							mapList = data.data;
-							
-							updateBar(2, 'Loaded map list.');
-						});
+				requestJSON('https://euw1.api.riotgames.com/lol/static-data/v3/items?itemListData=all&locale=en_GB', data => {
+					itemList = data.data;
+
+					updateBar(5, 'Loaded item list.');
+				});
+
+				requestJSON('https://euw1.api.riotgames.com/lol/static-data/v3/maps?locale=en_GB', data => {
+					mapList = data.data;
+
+					updateBar(2, 'Loaded map list.');
 				});
 			}
 			
