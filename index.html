@@ -9,7 +9,7 @@
 			body {
 				font-family: Tahoma, Geneva, sans-serif;
 				margin: 0px;
-				background: rgba(0, 0, 0, 0.9);
+				background: rgb(12, 19, 20);
 			}
 			
 			#loadingOverlay {
@@ -38,7 +38,7 @@
 			
 			td {
 				border: 1px solid black;
-				color: white;
+				color: #408476;
 				padding: 5px;
 				vertical-align: top;
 				font-size: 1vw;
@@ -57,25 +57,38 @@
 				width: 100%;
 			}
 			
-			passive, unique {
-				color: rgb(255, 220, 0);
+			active, passive, unique {
+				color: #f7d722;
 			}
 			
 			groupLimit {
 				color: rgb(220, 0, 0);
 			}
 			
-			active, consumable {
-				color: rgb(255, 127, 0);
+			consumable {
+				color: #ff8811;
+			}
+			
+			unlockedpassive {
+				color: #ff8811;
+				text-decoration: underline;
 			}
 			
 			stats {
-				color: rgb(200, 255, 200);
+				color: #94f794;
 			}
-
+			
+			scalelevel {
+				color: #ebecec;
+			}
+			
+			rules {
+				color: #7e7e7f;
+				font-style: italic;
+			}
+			
 			a {
-				color: white;
-				text-decoration: none;
+				color: inherit;
 			}
 		</style>
 	</head>
@@ -120,7 +133,7 @@
 					cell.style.width = '5%';
 					
 					cell = row.insertCell();
-					cell.innerHTML = `<a name="${item.id}">${item.name}</a>`;
+					cell.innerHTML = `<a name="${item.id}" style="color: #b1a572;">${item.name}</a>`;
 					cell.style.width = '4%';
 					
 					cell = row.insertCell();
@@ -173,7 +186,18 @@
 					cell.style.width = '16%';
 				}
 				
-				Array.from(document.getElementsByTagName('font')).forEach(tag => tag.removeAttribute('size'));
+				Array.from(table.querySelectorAll('font')).forEach(tag => {
+					if(!!tag.getAttribute('size'))
+						tag.removeAttribute('size');
+					
+					if(!!tag.getAttribute('color')) {
+						const color = tag.getAttribute('color');
+						
+						tag.style.color = color;
+						
+						tag.removeAttribute('color')
+					}
+				});
 						
 				setTimeout(function() {
 					document.querySelector('#loadingOverlay').animate(
