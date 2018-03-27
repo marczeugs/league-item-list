@@ -109,7 +109,10 @@
 		<script>
 			'use strict';
 			
-			let apiKey = prompt('Riot API key:');
+			let apiKey = 
+			    !!location.href.match(/apiKey=(RGAPI-[^?&]+)/) ? 
+			    	location.href.match(/apiKey=(RGAPI-[^?&]+)/)[1] : 
+			    	prompt('Riot API key:');
 			let itemList, mapList, latestPatch;
 			
 			function create() {
