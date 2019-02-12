@@ -9,7 +9,7 @@
 			body {
 				font-family: Tahoma, Geneva, sans-serif;
 				margin: 0px;
-				background: rgb(12, 19, 20);
+				background: rgb(19, 29, 31);
 			}
 			
 			#loadingOverlay {
@@ -38,11 +38,10 @@
 			
 			td {
 				border: 1px solid black;
-				color: #408476;
+				color: #509486;
 				padding: 5px;
 				vertical-align: top;
 				font-size: 1vw;
-				border: 2px solid black;
 			}
 
 			th {
@@ -53,17 +52,31 @@
 				font-size: 1.5vw;
 				border: 2px solid black;
 			}
-			
+
 			table {
-				background: transparent;
+				table-layout: fixed;
 				width: 100%;
 				border: 2px solid black;
 				border-spacing: 0;
 				border-collapse: collapse;
 			}
+			
+			table#contentTable {
+				background: transparent;
+			}
+
+			table#headerTable {
+				background: rgb(19, 29, 31);
+				position: fixed;
+				top: 0;
+			}
 
 			img {
 				width: 100%;
+			}
+
+			ul {
+				padding-inline-start: 15px;
 			}
 			
 			active, passive, unique {
@@ -136,27 +149,39 @@
 
 
 
-				const 
-					table = document.createElement('table'),
-					row = document.createElement('tr'),
-					columns = ['Image', 'Name', 'Costs', 'Tooltip', 'Description', 'Builds from:', 'Build into:', 'Available on:'];
+				const
+					contentTable = document.createElement('table'),
+					headerTable = document.createElement('table'),
+					headerRow = document.createElement('tr');
+
+				headerRow.innerHTML = `
+					<tr>
+						<th style="width: 8%">Image</th>
+						<th style="width: 8%">Name</th>
+						<th style="width: 11%">Costs</th>
+						<th style="width: 25%">Tooltip</th>
+						<th style="width: 10%">Description</th>
+						<th style="width: 12%">Builds from</th>
+						<th style="width: 12%">Build into</th>
+						<th style="width: 14%">Available on</th>
+					</tr>
+				`;
+
+				contentTable.id = 'contentTable';
+				headerTable.id = 'headerTable';
 				
-				for(const column of columns) {
-					const cell = document.createElement('th');
-					cell.innerText = column;
-					row.appendChild(cell);
-				}
+				contentTable.appendChild(headerRow);
+				headerTable.appendChild(headerRow.cloneNode(true));
+
 				
-				table.appendChild(row);
-				
-				for(const item of Object.values(itemList)) {
+				for(const [id, item] of Object.entries(itemList)) {
 					if(!item.name)
 						continue;
 
 					if(!item.description)
 						item.description = '';
 					
-					const row = table.insertRow();
+					const row = contentTable.insertRow();
 
 					let cell;
 					
@@ -165,7 +190,7 @@
 					cell.style.width = '5%';
 					
 					cell = row.insertCell();
-					cell.innerHTML = `<a name="${item.id}" style="color: #b1a572;">${item.name}</a>`;
+					cell.innerHTML = `<a name="${id}" style="color: #b1a572;">${item.name}</a>`;
 					cell.style.width = '4%';
 					
 					cell = row.insertCell();
@@ -184,47 +209,44 @@
 					cell.style.width = '10%';
 					
 					cell = row.insertCell();
-					cell.innerHTML = '';
-					if(typeof item.from === 'object') {
-						for(let i = 0; i < item.from.length; i++) {
-							if(i != 0) cell.innerHTML += ', ';
-							cell.innerHTML += `<a href="#${itemList[item.from[i]].id}">${itemList[item.from[i]].name}</a>`;
-						}
+					if(Array.isArray(item.from)) {
+						cell.innerHTML = `
+							<ul>
+								${item.from.map(fromID => `<li><a href="#${fromID}">${itemList[fromID].name}</a></li>`).join('')}
+							</ul>
+						`;
 					} else {
-						cell.innerHTML += 'Nothing';
+						cell.innerHTML = 'Nothing';
 					}
 					cell.style.width = '12%';
 					
 					cell = row.insertCell();
-					cell.innerHTML = '';
-					if(typeof item.into === 'object') {
-						for(let i = 0; i < item.into.length; i++) {
-							if(i != 0) cell.innerHTML += ', ';
-							cell.innerHTML += `<a href="#${itemList[item.into[i]].id}">${itemList[item.into[i]].name}</a>`;
-						}
+					if(Array.isArray(item.into)) {
+						cell.innerHTML = `
+							<ul>
+								${item.into.map(intoID => `<li><a href="#${intoID}">${itemList[intoID].name}</a></li>`).join('')}
+							</ul>
+						`;
 					} else {
-						cell.innerHTML += 'Nothing';
+						cell.innerHTML = 'Nothing';
 					}
 					cell.style.width = '12%';
 					
 					cell = row.insertCell();
 					cell.innerHTML = '';
 					if(typeof item.maps === 'object') {
-						let i = 0;
-						for(let id of Object.keys(item.maps)) {
-							if(item.maps[id]) {
-								if(i !== 0) cell.innerHTML += ', ';
-								cell.innerHTML += mapList[id]['MapName'];
-								i++;
-							}
-						}
+						cell.innerHTML = `
+							<ul>
+								${Object.entries(item.maps).filter(([_, available]) => available).map(([mapID, _]) => `<li>${mapList[mapID]['MapName']}</li>`).join('')}
+							</ul>
+						`;
 					} else {
-						cell.innerHTML += 'Nothing';
+						cell.innerHTML += 'None';
 					}
 					cell.style.width = '16%';
 				}
 				
-				Array.from(table.querySelectorAll('font')).forEach(tag => {
+				Array.from(contentTable.querySelectorAll('font')).forEach(tag => {
 					if(tag.getAttribute('size'))
 						tag.removeAttribute('size');
 					
@@ -249,7 +271,8 @@
 						}
 					);
 
-					document.body.appendChild(table);
+					document.body.appendChild(contentTable);
+					document.body.appendChild(headerTable);
 
 					setTimeout(() => document.body.removeChild(document.querySelector('#loadingOverlay')), 500);
 				}, 1000);
