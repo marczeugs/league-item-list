@@ -138,13 +138,31 @@
 					document.querySelector('#loadingBar').style.width = (100 * (currentWeight / maxWeight)) + '%';
 				});
 
-				const latestPatch = (await fetch('https://ddragon.leagueoflegends.com/api/versions.json').then(data => data.json()))[0];
-				updateBar(1, 'Fetched latest patch version.');
+				const latestPatch = /version=(.+?)(?:$|\?|&|#)/.test(location.href) ?
+					location.href.match(/version=(.+?)(?:$|\?|&|#)/)[1] : 
+					(await fetch('https://ddragon.leagueoflegends.com/api/versions.json').then(data => data.json()))[0];
+				updateBar(1, 'Loaded patch version.');
 
-				const itemList = (await fetch('https://ddragon.leagueoflegends.com/cdn/9.3.1/data/en_GB/item.json').then(data => data.json())).data;
+				let itemList;
+
+				try {
+					itemList = (await fetch(`https://ddragon.leagueoflegends.com/cdn/${latestPatch}/data/en_GB/item.json`).then(data => data.json())).data;
+				} catch(e) {
+					document.querySelector('#loadingStep').innerHTML = 'Error while loading data.';
+					console.log(e);
+					return;
+				}
+
 				updateBar(5, 'Loaded item list.');
 
-				const mapList = (await fetch('https://ddragon.leagueoflegends.com/cdn/9.3.1/data/en_GB/map.json').then(data => data.json())).data;
+				let mapList;
+				
+				try {
+					mapList = (await fetch(`https://ddragon.leagueoflegends.com/cdn/${latestPatch}/data/en_GB/map.json`).then(data => data.json())).data;
+				} catch(e) {
+					mapList = [];
+					console.log('Failed to load map data: ', e);
+				}
 				updateBar(2, 'Loaded map list.');
 
 
@@ -212,7 +230,7 @@
 					if(Array.isArray(item.from)) {
 						cell.innerHTML = `
 							<ul>
-								${item.from.map(fromID => `<li><a href="#${fromID}">${itemList[fromID].name}</a></li>`).join('')}
+								${item.from.map(fromID => `<li><a href="#${fromID}">${itemList[fromID] ? itemList[fromID].name : 'Unknown item'}</a></li>`).join('')}
 							</ul>
 						`;
 					} else {
@@ -224,7 +242,7 @@
 					if(Array.isArray(item.into)) {
 						cell.innerHTML = `
 							<ul>
-								${item.into.map(intoID => `<li><a href="#${intoID}">${itemList[intoID].name}</a></li>`).join('')}
+								${item.into.map(intoID => `<li><a href="#${intoID}">${itemList[intoID] ? itemList[intoID].name : 'Unknown item'}</a></li>`).join('')}
 							</ul>
 						`;
 					} else {
@@ -237,11 +255,11 @@
 					if(typeof item.maps === 'object') {
 						cell.innerHTML = `
 							<ul>
-								${Object.entries(item.maps).filter(([_, available]) => available).map(([mapID, _]) => `<li>${mapList[mapID]['MapName']}</li>`).join('')}
+								${Object.entries(item.maps).filter(([_, available]) => available).map(([mapID, _]) => `<li>${mapList[mapID] ? mapList[mapID]['MapName'] : 'Unknown map'}</li>`).join('')}
 							</ul>
 						`;
 					} else {
-						cell.innerHTML += 'None';
+						cell.innerHTML += 'Nowhere';
 					}
 					cell.style.width = '16%';
 				}
