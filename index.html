@@ -141,10 +141,10 @@
 				const latestPatch = (await fetch('https://ddragon.leagueoflegends.com/api/versions.json').then(data => data.json()))[0];
 				updateBar(1, 'Fetched latest patch version.');
 
-				const itemList = (await fetch('http://ddragon.leagueoflegends.com/cdn/9.3.1/data/en_GB/item.json').then(data => data.json())).data;
+				const itemList = (await fetch('https://ddragon.leagueoflegends.com/cdn/9.3.1/data/en_GB/item.json').then(data => data.json())).data;
 				updateBar(5, 'Loaded item list.');
 
-				const mapList = (await fetch('http://ddragon.leagueoflegends.com/cdn/9.3.1/data/en_GB/map.json').then(data => data.json())).data;
+				const mapList = (await fetch('https://ddragon.leagueoflegends.com/cdn/9.3.1/data/en_GB/map.json').then(data => data.json())).data;
 				updateBar(2, 'Loaded map list.');
 
 
