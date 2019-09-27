@@ -37,9 +37,9 @@
 			}
 			
 			td {
-				border: 1px solid black;
+				border: 0.1vw solid black;
 				color: #509486;
-				padding: 5px;
+				padding: 0.5%;
 				vertical-align: top;
 				font-size: 1vw;
 			}
@@ -180,7 +180,7 @@
 						<th style="width: 25%">Tooltip</th>
 						<th style="width: 10%">Description</th>
 						<th style="width: 12%">Builds from</th>
-						<th style="width: 12%">Build into</th>
+						<th style="width: 12%">Builds into</th>
 						<th style="width: 14%">Available on</th>
 					</tr>
 				`;
@@ -233,8 +233,6 @@
 								${item.from.map(fromID => `<li><a href="#${fromID}">${itemList[fromID] ? itemList[fromID].name : 'Unknown item'}</a></li>`).join('')}
 							</ul>
 						`;
-					} else {
-						cell.innerHTML = 'Nothing';
 					}
 					cell.style.width = '12%';
 					
@@ -245,8 +243,6 @@
 								${item.into.map(intoID => `<li><a href="#${intoID}">${itemList[intoID] ? itemList[intoID].name : 'Unknown item'}</a></li>`).join('')}
 							</ul>
 						`;
-					} else {
-						cell.innerHTML = 'Nothing';
 					}
 					cell.style.width = '12%';
 					
@@ -258,8 +254,6 @@
 								${Object.entries(item.maps).filter(([_, available]) => available).map(([mapID, _]) => `<li>${mapList[mapID] ? mapList[mapID]['MapName'] : 'Unknown map'}</li>`).join('')}
 							</ul>
 						`;
-					} else {
-						cell.innerHTML += 'Nowhere';
 					}
 					cell.style.width = '16%';
 				}
